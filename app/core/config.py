@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
     
     # Security
-    SECRET_SEED: str = "CHANGEME_SECRET_SEED_FOR_HASHING"
+    SECRET_SEED: str = "DOMO_SECURE_UPLINK_PROTOCOL_2026_X"
     
     # External APIs
     NASA_API_KEY: str = "AUVRRW9j4x8RC76w9CLqLAvCNV0YgZNLcMFE0YVe"

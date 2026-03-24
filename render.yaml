@@ -9,7 +9,7 @@ services:
       - key: NASA_API_KEY
         sync: false # Set this in Render Dashboard for security
       - key: SECRET_SEED
-        value: CHANGEME_SECRET_SEED_FOR_HASHING
+        value: DOMO_SECURE_UPLINK_PROTOCOL_2026_X
       - key: DATABASE_URL
         value: sqlite+aiosqlite:///./domo_metrics.db
       - key: PYTHON_VERSION
