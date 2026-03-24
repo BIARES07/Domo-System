@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: sistema-domo
+    runtime: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: NASA_API_KEY
+        sync: false # Set this in Render Dashboard for security
+      - key: SECRET_SEED
+        value: CHANGEME_SECRET_SEED_FOR_HASHING
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./domo_metrics.db
+      - key: PYTHON_VERSION
+        value: 3.13.0

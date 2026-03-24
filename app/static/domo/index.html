@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA DOMO - SPACE OPERATIONS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/domo/style.css">
+</head>
+<body>
+    <div id="overlay-grid"></div>
+    <header>
+        <div class="logo">DOMO<span>.sys</span></div>
+        <nav>
+            <button class="nav-btn active" data-target="dashboard">Dashboard</button>
+            <button class="nav-btn" data-target="weather">Space Weather</button>
+            <button class="nav-btn" data-target="neos">NEOs Radar</button>
+            <button class="nav-btn" data-target="satellites">Satellites</button>
+            <button class="nav-btn" data-target="apod">A.P.O.D.</button>
+        </nav>
+        <div id="connection-status">
+            <span class="dot"></span> SECURE LINK
+        </div>
+    </header>
+
+    <main id="main-content">
+        <!-- Dashboard View -->
+        <section id="dashboard" class="view active">
+            <div class="welcome-box">
+                <h2>WELCOME TO DOMO OPERATIONS</h2>
+                <p>Initialization complete. Select a module from the navigation bar to begin analysis.</p>
+                <div class="crypto-status">
+                    <p><strong>AUTH:</strong> Handshake required for deep data access.</p>
+                    <button id="init-handshake-btn">Initialize Handshake</button>
+                    <p id="handshake-log" class="log-text"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Space Weather View -->
+        <section id="weather" class="view">
+            <h2>SOLAR FLARE ACTIVITY (DONKI)</h2>
+            <div class="grid-container" id="weather-grid">
+                <!-- Loaded via JS -->
+            </div>
+        </section>
+
+        <!-- NEOs View -->
+        <section id="neos" class="view">
+            <h2>NEAR EARTH OBJECTS</h2>
+            <div class="grid-container" id="neos-grid">
+                 <!-- Loaded via JS -->
+            </div>
+        </section>
+
+        <!-- Satellites View -->
+        <section id="satellites" class="view">
+            <h2>ACTIVE ORBITAL ASSETS</h2>
+            <div class="table-container">
+                <table id="sat-table">
+                    <thead>
+                        <tr>
+                            <th>NORAD ID</th>
+                            <th>NAME</th>
+                            <th>INCLINATION</th>
+                            <th>ECCENTRICITY</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sat-body">
+                         <!-- Loaded via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- APOD View -->
+        <section id="apod" class="view">
+            <h2>ASTRONOMY PICTURE OF THE DAY</h2>
+            <div id="apod-content" class="apod-box">
+                 <!-- Loaded via JS -->
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="/static/domo/app.js"></script>
+</body>
+</html>

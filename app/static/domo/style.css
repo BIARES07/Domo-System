@@ -1,0 +1,179 @@
+:root {
+    --bg-base: #030712;
+    --text-main: #e2e8f0;
+    --accent: #0ea5e9; /* Light blue accent */
+    --accent-glow: rgba(14, 165, 233, 0.4);
+    --border-dim: #1e293b;
+    --panel-bg: rgba(15, 23, 42, 0.6);
+    --font-heading: 'Orbitron', sans-serif;
+    --font-body: 'Rajdhani', sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Subtle background grid */
+#overlay-grid {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background-image: 
+        linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -1;
+    pointer-events: none;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--border-dim);
+    background: rgba(3, 7, 18, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.logo {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px var(--accent-glow);
+}
+.logo span { color: var(--accent); }
+
+nav {
+    display: flex;
+    gap: 15px;
+}
+
+.nav-btn {
+    background: transparent;
+    border: 1px solid var(--border-dim);
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.nav-btn:hover, .nav-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+#connection-status {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dot {
+    width: 8px; height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #10b981;
+}
+
+main {
+    padding: 40px;
+    flex-grow: 1;
+}
+
+.view {
+    display: none;
+    animation: fadeIn 0.4s ease-out forwards;
+}
+.view.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h2 {
+    font-family: var(--font-heading);
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    color: var(--accent);
+}
+
+.welcome-box {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-dim);
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.crypto-status {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(0,0,0,0.3);
+    border-left: 3px solid var(--accent);
+}
+
+#init-handshake-btn {
+    background: var(--accent);
+    color: #fff; border: none;
+    padding: 10px 20px; cursor: pointer;
+    font-family: var(--font-heading);
+    border-radius: 4px; margin-top: 10px;
+}
+
+.log-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; color: #a1a1aa; margin-top: 10px;
+    white-space: pre-wrap;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.data-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-dim);
+    padding: 20px;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+.data-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+/* Table for satellites */
+.table-container { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--panel-bg); }
+th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-dim); }
+th { font-family: var(--font-heading); color: var(--accent); font-weight: normal; }
+tr:hover { background: rgba(255,255,255,0.02); }
+
+.apod-box img {
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border-dim);
+    margin-bottom: 20px;
+}
+
+.error-text { color: #ef4444; font-family: 'Courier New', Courier, monospace; }

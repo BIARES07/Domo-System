@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOMO Proxy Control - Game Master</title>
+    <link rel="stylesheet" href="/static/gm/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>DOMO PROXY CONTROL <span>// OVERSEER MODE</span></h1>
+        </div>
+        <div id="status-indicator" class="status-ok">PROXY ACTIVE</div>
+    </header>
+
+    <main>
+        <section class="panel traps-panel">
+            <h2><span class="icon">☠</span> ACTIVE CHAOS PROTOCOLS</h2>
+            <p class="panel-desc">Configure the hostility of the proxy server against the intern. Changes apply immediately in memory.</p>
+            <div id="traps-container">
+                <!-- Traps injected here by JS -->
+            </div>
+        </section>
+
+        <section class="panel metrics-panel">
+            <h2><span class="icon">⌖</span> LIVE TRAINEE TELEMETRY</h2>
+            <p class="panel-desc">Monitoring incoming requests from the intern to the /api/v1/intern/* endpoints.</p>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>TIMESTAMP</th>
+                            <th>ENDPOINT</th>
+                            <th>STATUS</th>
+                            <th>LATENCY (ms)</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="metrics-body">
+                        <!-- Metrics injected here by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/gm/app.js"></script>
+</body>
+</html>

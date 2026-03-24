@@ -1,0 +1,22 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Base de Datos y Backups
+*.db
+backups/
+*.bak
+
+# Variables de entorno
+.env
+
+# OS
+.DS_Store
+Thumbs.db
