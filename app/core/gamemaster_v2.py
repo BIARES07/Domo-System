@@ -75,7 +75,7 @@ class GamemasterV2:
             return {
                 "status": "SESSION_ENCRYPTED_UPGRADE_REQUIRED",
                 "payload_buffer": encoded,
-                "hint": "Your crypto-session has expired. Re-handshake or decode the buffer using the rotating seed."
+                "hint": "Cryptographic security handshake required. Re-authenticate to decrypt stream."
             }
         return data
 

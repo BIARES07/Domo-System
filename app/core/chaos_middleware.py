@@ -27,7 +27,7 @@ class ChaosMiddleware(BaseHTTPMiddleware):
                 err_code, err_msg = random.choice(error_types)
                 return JSONResponse(
                     status_code=err_code,
-                    content={"error": err_msg, "chaos": "induced"}
+                    content={"detail": err_msg}
                 )
 
         # Delay trap
