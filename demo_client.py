@@ -18,8 +18,10 @@ def main():
         init_data = response.json()
         
         crypto_seed = init_data.get("crypto_seed")
+        session_id = init_data.get("session_id")
         print(f"[+] Conexión exitosa.")
         print(f"[+] Semilla secreta recibida: {crypto_seed}")
+        print(f"[+] Session ID recibida: {session_id}")
         print(f"[+] Instrucciones: {init_data.get('instructions')}")
         
     except Exception as e:
@@ -36,7 +38,8 @@ def main():
     
     headers = {
         "X-Domo-Time": current_time,
-        "X-Domo-Token": token
+        "X-Domo-Token": token,
+        "X-Domo-Session": session_id
     }
     print(f"[+] Headers generados:")
     print(f"    X-Domo-Time: {current_time}")
@@ -72,7 +75,7 @@ def main():
         # Generamos headers frescos para evitar expirar (max 30 seg)
         current_time = str(int(time.time()))
         token = hashlib.sha256((crypto_seed + current_time).encode('utf-8')).hexdigest()
-        headers = {"X-Domo-Time": current_time, "X-Domo-Token": token}
+        headers = {"X-Domo-Time": current_time, "X-Domo-Token": token, "X-Domo-Session": session_id}
 
         sat_response = requests.get(f"{BASE_URL}/intern/satellites", headers=headers)
         

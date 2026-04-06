@@ -54,8 +54,37 @@ class DomoTester:
         token = hashlib.sha256(payload.encode()).hexdigest()
         return {
             "X-Domo-Time": t_str,
-            "X-Domo-Token": token
+            "X-Domo-Token": token,
+            "X-Domo-Session": self.session_id
         }
+
+    def read_field(self, payload, key, fallback=None):
+        if not isinstance(payload, dict):
+            return fallback
+        if key in payload:
+            return payload[key]
+        mutated_key = f"{key}_cruda"
+        if mutated_key in payload:
+            return payload[mutated_key]
+        return fallback
+
+    def extract_items(self, data):
+        paged_items = self.read_field(data, "items")
+        if isinstance(paged_items, list):
+            return paged_items
+
+        manifest = self.read_field(data, "manifest")
+        if isinstance(manifest, list):
+            return manifest
+
+        alerts = self.read_field(data, "alerts")
+        if isinstance(alerts, list):
+            return alerts
+
+        if isinstance(data, list):
+            return data
+
+        return [data]
 
     def analyze_response(self, response, endpoint_name):
         print(f"\n--- Analyzing {endpoint_name} ---")
@@ -78,9 +107,16 @@ class DomoTester:
                 raw_payload = base64.b64decode(data["payload_buffer"]).decode()
                 print(f"    Decoded Data (first 100 chars): {raw_payload[:100]}...")
                 data = json.loads(raw_payload)
+
+            if isinstance(self.read_field(data, "manifest"), list):
+                print("[!] DETECTED: Launch Window Fragmentation.")
+
+            if isinstance(self.read_field(data, "alerts"), list):
+                print("[!] DETECTED: Conjunction Signal Scramble.")
             
             is_mutated = False
-            sample_item = data[0] if isinstance(data, list) and len(data) > 0 else data
+            extracted_items = self.extract_items(data)
+            sample_item = extracted_items[0] if extracted_items else data
             if isinstance(sample_item, dict):
                 for k in sample_item.keys():
                     if k.endswith("_cruda"):
@@ -99,10 +135,16 @@ class DomoTester:
             if is_drifted:
                 print("[!] DETECTED: Schema Drift (Advanced). Numbers converted to strings with units.")
 
-            if isinstance(data, dict) and "items" in data and "range" in data:
+            if isinstance(self.read_field(data, "items"), list) and self.read_field(data, "range"):
                 print("[!] DETECTED: Inconsistent Paging (Advanced).")
-                print(f"    Range: {data['range']} | Total: {data['total_count']}")
-                print(f"    Items received: {len(data['items'])}")
+                print(f"    Range: {self.read_field(data, 'range')} | Total: {self.read_field(data, 'total_count')}")
+                print(f"    Items received: {len(self.read_field(data, 'items', []))}")
+
+            if isinstance(sample_item, dict) and self.read_field(sample_item, "launch_vector"):
+                print(f"    Launch Vector: {self.read_field(sample_item, 'launch_vector')}")
+
+            if isinstance(sample_item, dict) and self.read_field(sample_item, "threat_band"):
+                print(f"    Threat Band: {self.read_field(sample_item, 'threat_band')}")
 
             print("[+] Sample Data Received:")
             print(json.dumps(data if not isinstance(data, list) else data[:1], indent=2))
@@ -135,18 +177,30 @@ class DomoTester:
             except Exception as e:
                 print(f"[-] Request error: {e}")
 
-            # Test 2: Satellites
+            # Test 2: Launches
+            print("\n--- Testing Launches Feed ---")
+            headers = self.get_auth_headers()
+            res = await client.get(f"http://127.0.0.1:8000{self.links['launches']}", headers=headers)
+            self.analyze_response(res, "LAUNCHES")
+
+            # Test 3: Conjunctions
+            print("\n--- Testing Conjunctions Feed ---")
+            headers = self.get_auth_headers()
+            res = await client.get(f"http://127.0.0.1:8000{self.links['conjunctions']}", headers=headers)
+            self.analyze_response(res, "CONJUNCTIONS")
+
+            # Test 4: Satellites
             print("\n--- Testing Satellites with Paging Header ---")
             headers = self.get_auth_headers()
             headers["X-Domo-Range"] = "items=0-9"
             res = await client.get(f"http://127.0.0.1:8000{self.links['satellites']}", headers=headers)
             self.analyze_response(res, "SATELLITES")
 
-            # Test 3: Seed Rotation
-            print("\n--- Testing Seed Rotation (Expired Header) ---")
+            # Test 5: Anti-Replay Barrier
+            print("\n--- Testing Anti-Replay Barrier (Expired Header) ---")
             headers = self.get_auth_headers(force_expired=True)
             res = await client.get(f"http://127.0.0.1:8000{self.links['apod']}", headers=headers)
-            self.analyze_response(res, "APOD (ENCRYPTED)")
+            self.analyze_response(res, "APOD (EXPIRED TIMESTAMP)")
 
 if __name__ == "__main__":
     tester = DomoTester()

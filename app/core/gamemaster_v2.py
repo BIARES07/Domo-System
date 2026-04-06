@@ -2,7 +2,7 @@ import base64
 import json
 from typing import Any, Dict, List
 from datetime import datetime
-import hashlib
+import time
 
 class GamemasterV2:
     @staticmethod
@@ -60,16 +60,17 @@ class GamemasterV2:
         }
 
     @staticmethod
-    def apply_seed_rotation(data: Any, request_time: int) -> Any:
+    def apply_seed_rotation(data: Any, session_started_at: float = None) -> Any:
         """
         Trap: Seed Rotation.
-        If the request_time is "too old" relative to now (e.g. session > 1 hour),
+        If the authenticated session is older than 1 hour,
         return the data as a Base64 string instead of JSON.
         """
-        current_time = int(datetime.now().timestamp())
-        # We simulate that the session started at 'request_time'
-        # In this trap, if the diff is > 3600 seconds (1 hour), we "corrupt" the data
-        if abs(current_time - request_time) > 3600:
+        if session_started_at is None:
+            return data
+
+        current_time = int(time.time())
+        if abs(current_time - int(session_started_at)) > 3600:
             json_str = json.dumps(data)
             encoded = base64.b64encode(json_str.encode()).decode()
             return {
@@ -87,5 +88,70 @@ class GamemasterV2:
         """
         date_str = datetime.now().strftime("%Y-%m-%d")
         return f"{base_path}/{date_str}"
+
+    @staticmethod
+    def apply_launch_window_fragmentation(data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Trap: Launch Window Fragmentation.
+        Converts flat launch rows into a manifest packet with nested timing data.
+        """
+        manifest = []
+        for launch in data:
+            manifest.append(
+                {
+                    "mission_id": launch.get("mission_id"),
+                    "mission_name": launch.get("mission_name"),
+                    "provider": launch.get("provider"),
+                    "vehicle": launch.get("vehicle"),
+                    "launch_site": launch.get("launch_site"),
+                    "orbit_class": launch.get("orbit_class"),
+                    "payload": launch.get("payload"),
+                    "readiness": launch.get("readiness"),
+                    "mission_brief": launch.get("mission_brief"),
+                    "window_packet": {
+                        "open": launch.get("window_open_utc"),
+                        "close": launch.get("window_close_utc"),
+                    },
+                    "launch_vector": f"{launch.get('status', 'UNKNOWN')}|{launch.get('countdown', 'T-00H 00M')}",
+                }
+            )
+
+        return {
+            "manifest": manifest,
+            "window_count": len(manifest),
+            "sync_mode": "fragmented",
+        }
+
+    @staticmethod
+    def apply_conjunction_signal_scramble(data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Trap: Conjunction Signal Scramble.
+        Wraps conjunctions in a packet, flattens ranking into a string band and reorders by TCA.
+        """
+        alerts = []
+        for alert in sorted(data, key=lambda item: item.get("tca_utc", "")):
+            alerts.append(
+                {
+                    "event_id": alert.get("event_id"),
+                    "primary_name": alert.get("primary_name"),
+                    "primary_norad_id": alert.get("primary_norad_id"),
+                    "secondary_name": alert.get("secondary_name"),
+                    "secondary_norad_id": alert.get("secondary_norad_id"),
+                    "tca_utc": alert.get("tca_utc"),
+                    "threat_band": f"R-{int(alert.get('risk_score', 0)):03d}",
+                    "geometry": {
+                        "miss_km": alert.get("miss_distance_km"),
+                        "rel_vel_kms": alert.get("relative_velocity_kms"),
+                    },
+                    "alert_level": alert.get("alert_level"),
+                    "recommended_action": alert.get("recommended_action"),
+                }
+            )
+
+        return {
+            "alerts": alerts,
+            "ordering": "chronological",
+            "operator_hint": "Normalize threat_band and geometry before ranking.",
+        }
 
 gamemaster_v2 = GamemasterV2()

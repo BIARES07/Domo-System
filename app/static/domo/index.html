@@ -16,6 +16,8 @@
             <button class="nav-btn" data-target="weather">Space Weather</button>
             <button class="nav-btn" data-target="neos">NEOs Radar</button>
             <button class="nav-btn" data-target="satellites">Satellites</button>
+            <button class="nav-btn" data-target="launches">Launches</button>
+            <button class="nav-btn" data-target="conjunctions">Conjunctions</button>
             <button class="nav-btn" data-target="apod">A.P.O.D.</button>
         </nav>
         <div id="connection-status">
@@ -28,7 +30,7 @@
         <section id="dashboard" class="view active">
             <div class="welcome-box">
                 <h2>WELCOME TO DOMO OPERATIONS</h2>
-                <p>Initialization complete. Select a module from the navigation bar to begin analysis.</p>
+                <p>Initialization complete. Select a module from the navigation bar to begin analysis across weather, orbital traffic and launch intelligence.</p>
                 <div class="crypto-status">
                     <p><strong>AUTH:</strong> Handshake required for deep data access.</p>
                     <button id="init-handshake-btn">Initialize Handshake</button>
@@ -70,6 +72,20 @@
                          <!-- Loaded via JS -->
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <section id="launches" class="view">
+            <h2>MISSION WINDOWS</h2>
+            <div class="grid-container" id="launches-grid">
+                <!-- Loaded via JS -->
+            </div>
+        </section>
+
+        <section id="conjunctions" class="view">
+            <h2>CONJUNCTION WATCHLIST</h2>
+            <div class="grid-container compact-grid" id="conjunctions-grid">
+                <!-- Loaded via JS -->
             </div>
         </section>
 

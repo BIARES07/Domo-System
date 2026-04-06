@@ -12,7 +12,10 @@
         <div class="logo">
             <h1>DOMO PROXY CONTROL <span>// OVERSEER MODE</span></h1>
         </div>
-        <div id="status-indicator" class="status-ok">PROXY ACTIVE</div>
+        <div class="status-cluster">
+            <div id="status-indicator" class="status-ok">PROXY ACTIVE</div>
+            <div id="last-refresh" class="meta-indicator">LAST SYNC --</div>
+        </div>
     </header>
 
     <main>
@@ -24,27 +27,54 @@
             </div>
         </section>
 
-        <section class="panel metrics-panel">
-            <h2><span class="icon">⌖</span> LIVE TRAINEE TELEMETRY</h2>
-            <p class="panel-desc">Monitoring incoming requests from the intern to the /api/v1/intern/* endpoints.</p>
-            
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>TIMESTAMP</th>
-                            <th>ENDPOINT</th>
-                            <th>STATUS</th>
-                            <th>LATENCY (ms)</th>
-                            <th>IP</th>
-                        </tr>
-                    </thead>
-                    <tbody id="metrics-body">
-                        <!-- Metrics injected here by JS -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        <div class="ops-column">
+            <section class="panel intel-panel">
+                <h2>ORBITAL SITUATION ROOM</h2>
+                <p class="panel-desc">Live operator view of launch cadence, conjunction pressure and upstream asset coverage.</p>
+
+                <div id="intel-summary" class="intel-summary">
+                    <!-- Summary injected here by JS -->
+                </div>
+
+                <div class="intel-grid">
+                    <section class="intel-subpanel">
+                        <h3>MISSION WINDOWS</h3>
+                        <div id="launches-list" class="stack-list">
+                            <!-- Launches injected here by JS -->
+                        </div>
+                    </section>
+
+                    <section class="intel-subpanel">
+                        <h3>CONJUNCTION WATCH</h3>
+                        <div id="conjunctions-list" class="stack-list">
+                            <!-- Conjunctions injected here by JS -->
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="panel metrics-panel">
+                <h2><span class="icon">⌖</span> LIVE TRAINEE TELEMETRY</h2>
+                <p class="panel-desc">Monitoring incoming requests from the intern to the /api/v1/intern/* endpoints.</p>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>TIMESTAMP</th>
+                                <th>ENDPOINT</th>
+                                <th>STATUS</th>
+                                <th>LATENCY (ms)</th>
+                                <th>IP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="metrics-body">
+                            <!-- Metrics injected here by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
     </main>
 
     <script src="/static/gm/app.js"></script>

@@ -38,8 +38,8 @@ Para cualquier petición a la API, el cliente debe implementar la firma criptogr
 *   **Resolución:** Inspeccionar los metadatos de la respuesta. Si existe un campo `next_range`, el cliente debe enviar el header `X-Domo-Range: items=X-Y` para solicitar el siguiente bloque de datos.
 
 ### Nivel 2+: Rotación de Semilla (Seed Rotation)
-*   **Anomalía:** Los datos llegan como un buffer Base64 en el campo `payload_buffer`.
-*   **Resolución:** Detección de tipo de respuesta. Si el status es `SESSION_ENCRYPTED_UPGRADE_REQUIRED`, el cliente debe decodificar el Base64 y realizar un nuevo Handshake para refrescar la semilla.
+*   **Anomalía:** Los datos llegan como un buffer Base64 en el campo `payload_buffer` después de que la sesión supere su tiempo de vida, aunque el `X-Domo-Time` siga siendo fresco.
+*   **Resolución:** Detección de tipo de respuesta. Si el status es `SESSION_ENCRYPTED_UPGRADE_REQUIRED`, el cliente debe decodificar el Base64 y realizar un nuevo Handshake para refrescar la sesión (`X-Domo-Session`) y continuar con timestamps recientes.
 
 ### Nivel 3: Protocolo Binario (Binary TLE)
 *   **Anomalía:** El `Content-Type` cambia a `application/octet-stream`.
@@ -48,6 +48,14 @@ Para cualquier petición a la API, el cliente debe implementar la firma criptogr
 ### Nivel 3: HATEOAS Dinámico
 *   **Anomalía:** Las URLs hardcodeadas dejan de funcionar cada 24 horas.
 *   **Resolución:** **Service Discovery**. El cliente nunca debe tener URLs fijas (excepto `/init`). Debe consumir el mapa de `links` de la respuesta inicial cada vez que arranca la sesión.
+
+### Nivel 3+: Fragmentación de Ventanas de Lanzamiento
+*   **Anomalía:** `/launches` ya no devuelve una lista plana. Los horarios aparecen dentro de `window_packet` y el estado viene unido al countdown en `launch_vector`.
+*   **Resolución:** Construir un **Normalizer** para misiones. Si la respuesta contiene `manifest`, recorrer esa colección y reconstruir un DTO estable combinando `launch_vector` con `window_packet`.
+
+### Nivel 3+: Señal de Conjunción Reordenada
+*   **Anomalía:** `/conjunctions` responde con `alerts`, el orden ya no representa prioridad y el riesgo llega como `threat_band` junto con una geometría anidada.
+*   **Resolución:** Extraer los datos críticos a un modelo interno. Parsear `threat_band` a entero, leer `geometry.miss_km` y `geometry.rel_vel_kms`, y luego ordenar localmente por criticidad antes de pintar la UI.
 
 ---
 
@@ -61,8 +69,8 @@ El objetivo es que el pasante desarrolle resiliencia y habilidades de arquitectu
 | :--- | :--- | :--- | :--- |
 | **1** | Conectividad Básica | Latency (Baja), JSON Mutation | "El sistema es antiguo y las llaves son inconsistentes". |
 | **2** | Robustez y Errores | HTTP Chaos (Prob: 0.2), Schema Drift | "Estamos migrando sensores, los tipos de datos pueden variar". |
-| **3** | Optimización y Seguridad | Inconsistent Paging, Seed Rotation | "Se activó el protocolo de ahorro de banda y rotación de llaves". |
-| **4** | Bajo Nivel y Dinamismo | Binary TLE, Dynamic HATEOAS | "Protocolo militar activado. Solo comunicación binaria directa". |
+| **3** | Optimización y Seguridad | Inconsistent Paging, Seed Rotation, Launch Window Fragmentation | "Se activó el protocolo de ahorro de banda y rotación de llaves". |
+| **4** | Bajo Nivel y Dinamismo | Binary TLE, Dynamic HATEOAS, Conjunction Signal Scramble | "Protocolo militar activado. Solo comunicación binaria directa". |
 
 ## Metodología de Mentoría
 

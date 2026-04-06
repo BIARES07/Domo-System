@@ -24,6 +24,8 @@ Este documento contiene los enlaces de acceso y credenciales críticas para la g
 *   **Weather:** `https://sistema-domo.onrender.com/api/v1/intern/weather`
 *   **NEOs:** `https://sistema-domo.onrender.com/api/v1/intern/neos`
 *   **Satellites:** `https://sistema-domo.onrender.com/api/v1/intern/satellites`
+*   **Launches:** `https://sistema-domo.onrender.com/api/v1/intern/launches`
+*   **Conjunctions:** `https://sistema-domo.onrender.com/api/v1/intern/conjunctions`
 *   **APOD:** `https://sistema-domo.onrender.com/api/v1/intern/apod`
 
 ---

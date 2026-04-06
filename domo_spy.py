@@ -16,10 +16,39 @@ class DomoSpy:
         self.client = httpx.AsyncClient(timeout=10.0)
         self.active_traps_db = []
         self.intern_links = {}
+        self.session_id = ""
 
     def log(self, tag, msg, color="0"):
         # Colores: 1=Rojo, 2=Verde, 3=Amarillo, 4=Azul, 5=Magenta, 6=Cian
         print(f"\033[1;3{color}m[{tag}]\033[0m {msg}")
+
+    def read_field(self, payload, key, default=None):
+        if not isinstance(payload, dict):
+            return default
+        if key in payload:
+            return payload[key]
+        mutated_key = f"{key}_cruda"
+        if mutated_key in payload:
+            return payload[mutated_key]
+        return default
+
+    def extract_items(self, data):
+        paged_items = self.read_field(data, "items")
+        if isinstance(paged_items, list):
+            return paged_items
+
+        manifest = self.read_field(data, "manifest")
+        if isinstance(manifest, list):
+            return manifest
+
+        alerts = self.read_field(data, "alerts")
+        if isinstance(alerts, list):
+            return alerts
+
+        if isinstance(data, list):
+            return data
+
+        return [data]
 
     async def sync_admin_status(self):
         """Consulta qué trampas están encendidas en la base de datos"""
@@ -36,6 +65,7 @@ class DomoSpy:
             res = await self.client.get(f"{ROOT_URL}{API_V1}/init/")
             data = res.json()
             self.intern_links = data["links"]
+            self.session_id = data.get("session_id", "")
             self.log("INIT", "Handshake completado. Rutas obtenidas.", "2")
             return data["crypto_seed"]
         except Exception as e:
@@ -45,12 +75,17 @@ class DomoSpy:
     def get_headers(self, seed, expired=False):
         ts = int(time.time()) if not expired else int(time.time()) - 4000
         token = hashlib.sha256(f"{seed}{ts}".encode()).hexdigest()
-        return {"X-Domo-Time": str(ts), "X-Domo-Token": token}
+        headers = {"X-Domo-Time": str(ts), "X-Domo-Token": token}
+        if self.session_id:
+            headers["X-Domo-Session"] = self.session_id
+        return headers
 
     async def probe_endpoint(self, name, path, seed):
         """Lanza una sonda a un endpoint y analiza las trampas detectadas"""
         self.log("PROBE", f"Analizando {name}...", "6")
         headers = self.get_headers(seed)
+        if name == "SATELLITES":
+            headers["X-Domo-Range"] = "items=0-9"
         start = time.time()
         
         try:
@@ -80,16 +115,28 @@ class DomoSpy:
                 data = json.loads(base64.b64decode(data["payload_buffer"]).decode())
 
             # Advanced: Inconsistent Paging
-            if isinstance(data, dict) and "items" in data:
+            if isinstance(self.read_field(data, "items"), list):
                 traps_found.append("INCONSISTENT_PAGING")
 
-            items = data["items"] if "items" in data else (data if isinstance(data, list) else [data])
+            if isinstance(self.read_field(data, "manifest"), list):
+                traps_found.append("LAUNCH_WINDOW_FRAGMENTATION")
+
+            if isinstance(self.read_field(data, "alerts"), list):
+                traps_found.append("CONJUNCTION_SIGNAL_SCRAMBLE")
+
+            items = self.extract_items(data)
             if items and len(items) > 0:
                 sample = items[0]
-                if any(str(k).endswith("_cruda") for k in sample.keys()):
+                if isinstance(sample, dict) and any(str(k).endswith("_cruda") for k in sample.keys()):
                     traps_found.append("JSON_MUTATION")
-                if any("units" in str(v) or "km/s" in str(v) for v in sample.values()):
+                if isinstance(sample, dict) and any("units" in str(v) or "km/s" in str(v) for v in sample.values()):
                     traps_found.append("SCHEMA_DRIFT")
+
+                if isinstance(sample, dict) and self.read_field(sample, "launch_vector"):
+                    self.log("INFO", f"Launch vector detectado: {self.read_field(sample, 'launch_vector')}", "4")
+
+                if isinstance(sample, dict) and self.read_field(sample, "threat_band"):
+                    self.log("INFO", f"Threat band detectado: {self.read_field(sample, 'threat_band')}", "4")
 
             if traps_found:
                 self.log("FIND", f"Trampas detectadas: {', '.join(traps_found)}", "3")
@@ -103,7 +150,7 @@ class DomoSpy:
 
     async def run_audit(self):
         print("\n" + "="*50)
-        print(" DOMO-SPY v2.1 - COBERTURA TOTAL DE AUDITORÍA")
+        print(" DOMO-SPY v2.2 - COBERTURA TOTAL DE AUDITORÍA")
         print("="*50)
 
         await self.sync_admin_status()
@@ -115,22 +162,22 @@ class DomoSpy:
         await self.probe_endpoint("WEATHER", self.intern_links["weather"], seed)
         await self.probe_endpoint("NEOS", self.intern_links["neos"], seed)
         await self.probe_endpoint("SATELLITES", self.intern_links["satellites"], seed)
+        await self.probe_endpoint("LAUNCHES", self.intern_links["launches"], seed)
+        await self.probe_endpoint("CONJUNCTIONS", self.intern_links["conjunctions"], seed)
         await self.probe_endpoint("APOD", self.intern_links["apod"], seed)
 
-        # Probar rotación de semilla (Prueba de seguridad específica)
+        # Probar barrera anti-replay con timestamp vencido
         print("-" * 50)
-        self.log("TEST", "Verificando comportamiento con Token Expirado...", "5")
+        self.log("TEST", "Verificando barrera anti-replay con Token Expirado...", "5")
         headers = self.get_headers(seed, expired=True)
         try:
             res = await self.client.get(f"{ROOT_URL}{self.intern_links['apod']}", headers=headers)
-            if res.status_code == 200 and "payload_buffer" in res.json():
-                 self.log("FIND", "SEED_ROTATION ACTIVA: Datos protegidos en Base64.", "3")
-            elif res.status_code == 401:
-                 self.log("SAFE", "SEED_ROTATION INACTIVA: Acceso bloqueado correctamente (401).", "2")
+            if res.status_code == 401:
+                self.log("SAFE", "ANTI-REPLAY ACTIVO: Timestamp expirado bloqueado correctamente (401).", "2")
             else:
-                 self.log("WARN", f"Comportamiento inesperado en rotación (Status: {res.status_code})", "1")
+                self.log("WARN", f"Comportamiento inesperado en anti-replay (Status: {res.status_code})", "1")
         except Exception as e:
-            self.log("ERR", f"Fallo en prueba de rotación: {e}", "1")
+            self.log("ERR", f"Fallo en prueba anti-replay: {e}", "1")
 
 if __name__ == "__main__":
     spy = DomoSpy()

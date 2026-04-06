@@ -55,6 +55,8 @@ header {
 nav {
     display: flex;
     gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .nav-btn {
@@ -162,6 +164,84 @@ h2 {
 }
 .data-card:hover { transform: translateY(-2px); border-color: var(--accent); }
 
+.compact-grid {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+}
+
+.status-badge,
+.risk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.status-badge {
+    background: rgba(14, 165, 233, 0.15);
+    border: 1px solid rgba(14, 165, 233, 0.35);
+    color: #7dd3fc;
+}
+
+.risk-monitor {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #6ee7b7;
+}
+
+.risk-elevated {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #fcd34d;
+}
+
+.risk-high,
+.risk-critical {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+}
+
+.launch-meta,
+.conjunction-meta {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.metric-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.metric-chip {
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-dim);
+    min-width: 110px;
+}
+
+.metric-chip strong {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 4px;
+}
+
+.module-note {
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
 /* Table for satellites */
 .table-container { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; background: var(--panel-bg); }
@@ -177,3 +257,42 @@ tr:hover { background: rgba(255,255,255,0.02); }
 }
 
 .error-text { color: #ef4444; font-family: 'Courier New', Courier, monospace; }
+
+@media (max-width: 980px) {
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px;
+    }
+
+    main {
+        padding: 20px;
+    }
+
+    nav {
+        gap: 10px;
+    }
+
+    .nav-btn {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+}
+
+@media (max-width: 640px) {
+    .grid-container,
+    .compact-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .welcome-box {
+        padding: 20px;
+    }
+
+    th,
+    td {
+        padding: 10px;
+        font-size: 13px;
+    }
+}

@@ -20,6 +20,7 @@ Para acceder a los endpoints protegidos (`/intern/*`), cada una de tus peticione
 2.  **`X-Domo-Token`**: Un hash criptográfico calculado usando el algoritmo **SHA256**.
     *   **Fórmula:** `SHA256(crypto_seed + X-Domo-Time)`
     *   **Formato esperado:** Cadena Hexadecimal.
+3.  **`X-Domo-Session`**: El `session_id` devuelto por `GET /api/v1/init/`. Para acceso básico el sistema puede tolerar clientes legados, pero este identificador es el que permite protocolos avanzados como la rotación de sesión.
 
 **📚 Temas a estudiar para la autenticación:**
 *   Conceptos de APIs REST y Peticiones HTTP.
@@ -40,6 +41,10 @@ Todos los endpoints devuelven datos reales de operaciones espaciales. Deben ser 
     *   *Fuente:* NASA NeoWs.
 *   🛰️ **Telemetría de Satélites:** `GET /api/v1/intern/satellites`
     *   *Fuente:* CelesTrak (Activos en órbita terrestre).
+*   🚀 **Ventanas de Lanzamiento:** `GET /api/v1/intern/launches`
+    *   *Fuente:* Feed operacional DOMO para misiones y countdowns de despliegue.
+*   ⚠️ **Alertas de Conjunción:** `GET /api/v1/intern/conjunctions`
+    *   *Fuente:* Feed operacional DOMO derivado de geometría orbital y telemetría de activos.
 *   🌌 **Imagen Astronómica:** `GET /api/v1/intern/apod`
     *   *Fuente:* NASA APOD (Astronomy Picture of the Day).
 
@@ -75,6 +80,14 @@ El servidor actuará de forma hostil y errática de manera intencionada. Tu clie
     *   Configuración de *Timeouts* en clientes HTTP (evitar que la conexión se cierre prematuramente).
     *   **Diseño de Experiencia de Usuario (UX):** Implementación de estados de carga (Loading Spinners, Skeleton Screens) para evitar que la interfaz gráfica se congele mientras se esperan los datos.
 
+### Trampa Avanzada: `seed_rotation` (Rotación de Sesión)
+*   **Comportamiento:** Si una sesión autenticada permanece activa por más de una hora, las respuestas pasan a entregarse como un `payload_buffer` en Base64. El request puede seguir teniendo un timestamp fresco; lo que vence es la sesión, no la firma del request individual.
+*   **Afecta a:** Cualquier endpoint `/intern/*` cuando la trampa esté activa.
+*   **📚 Temas a estudiar:**
+    *   Manejo de sesiones de corta vida.
+    *   Renovación de handshake sin perder estado local.
+    *   Decodificación Base64 y detección de modos de respuesta mixtos.
+
 ### Trampa Nivel 3: `binary_tle` (Empaquetado Binario)
 *   **Comportamiento:** En lugar de devolver un cómodo texto JSON, el endpoint enviará un flujo de bytes crudos (`application/octet-stream`). Los datos están empaquetados como estructuras C, en modo *Little-Endian*. Cada satélite ocupa 20 bytes: un Entero sin signo de 4 bytes (Norad ID) seguido de 4 números decimales (Float) de 4 bytes cada uno.
 *   **Afecta a:** Exclusivamente a `/satellites`.
@@ -84,3 +97,19 @@ El servidor actuará de forma hostil y errática de manera intencionada. Tu clie
     *   Decodificación de memoria según el lenguaje: `DataView` y `ArrayBuffer` en JavaScript, o la librería `struct` en Python.
     *   Conceptos de arquitecturas de memoria: *Little-Endian* vs *Big-Endian*.
     *   Tipos de datos de bajo nivel (Unsigned Int de 32 bits, Float de 32 bits).
+
+### Trampa Avanzada: `launch_window_fragmentation` (Fragmentación de Ventanas de Lanzamiento)
+*   **Comportamiento:** El endpoint `/launches` deja de devolver una lista plana. En su lugar responde con un paquete `manifest` y cada misión mueve sus horarios a un `window_packet`, mientras que `status` y `countdown` llegan fusionados en `launch_vector`.
+*   **Afecta a:** `/launches`.
+*   **📚 Temas a estudiar:**
+    *   Normalización de payloads heterogéneos.
+    *   Adaptadores de DTOs con soporte para estructuras anidadas.
+    *   Parsing de strings compuestos y compatibilidad hacia atrás.
+
+### Trampa Avanzada: `conjunction_signal_scramble` (Señal de Conjunción Reordenada)
+*   **Comportamiento:** El endpoint `/conjunctions` responde con un objeto `alerts`, reordena eventos por tiempo de aproximación y encapsula las métricas cinemáticas dentro de `geometry`. El riesgo puede venir codificado como `threat_band` en lugar de un número directo.
+*   **Afecta a:** `/conjunctions`.
+*   **📚 Temas a estudiar:**
+    *   Reordenamiento local de colecciones según criticidad.
+    *   Extracción de métricas numéricas desde strings estructurados.
+    *   Lectura defensiva de objetos anidados.

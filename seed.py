@@ -20,7 +20,9 @@ async def seed_db():
             {"name": "schema_drift", "severity": 1.0, "active": False},
             {"name": "inconsistent_paging", "severity": 1.0, "active": False},
             {"name": "seed_rotation", "severity": 1.0, "active": False},
-            {"name": "dynamic_hateoas", "severity": 1.0, "active": False}
+            {"name": "dynamic_hateoas", "severity": 1.0, "active": False},
+            {"name": "launch_window_fragmentation", "severity": 1.0, "active": False},
+            {"name": "conjunction_signal_scramble", "severity": 1.0, "active": False}
         ]
         
         for t in traps:

@@ -4,6 +4,7 @@ import json
 
 from app.services.nasa_client import nasa_client
 from app.services.celestrak_client import celestrak_client
+from app.services.orbital_ops_service import orbital_ops_service
 from app.core.gamemaster import gamemaster
 from app.core.gamemaster_v2 import gamemaster_v2
 from app.core.state import state
@@ -17,9 +18,8 @@ async def is_trap_active(trap_name: str) -> bool:
 async def apply_v2_traps(data: Any, request: Request) -> Any:
     # 1. Seed Rotation Trap (Requires X-Domo-Time)
     if await is_trap_active("seed_rotation"):
-        domo_time = request.headers.get("X-Domo-Time")
-        if domo_time:
-            data = gamemaster_v2.apply_seed_rotation(data, int(domo_time))
+        session_started_at = getattr(request.state, "domo_session_started_at", None)
+        data = gamemaster_v2.apply_seed_rotation(data, session_started_at=session_started_at)
             
     # 2. Schema Drift Trap
     if await is_trap_active("schema_drift"):
@@ -98,6 +98,40 @@ async def get_apod(request: Request, date_str: Optional[str] = None):
         data = await nasa_client.get_apod()
         if await is_trap_active("json_mutation"):
             data = gamemaster.mutate_json(data)
+        return await apply_v2_traps(data, request)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/launches")
+@router.get("/launches/{date_str}")
+async def get_launches(request: Request, date_str: Optional[str] = None):
+    try:
+        data = await orbital_ops_service.get_launch_windows()
+
+        if await is_trap_active("launch_window_fragmentation"):
+            data = gamemaster_v2.apply_launch_window_fragmentation(data)
+
+        if await is_trap_active("json_mutation"):
+            data = gamemaster.mutate_json(data)
+
+        return await apply_v2_traps(data, request)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/conjunctions")
+@router.get("/conjunctions/{date_str}")
+async def get_conjunctions(request: Request, date_str: Optional[str] = None):
+    try:
+        data = await orbital_ops_service.get_conjunction_alerts()
+
+        if await is_trap_active("conjunction_signal_scramble"):
+            data = gamemaster_v2.apply_conjunction_signal_scramble(data)
+
+        if await is_trap_active("json_mutation"):
+            data = gamemaster.mutate_json(data)
+
         return await apply_v2_traps(data, request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

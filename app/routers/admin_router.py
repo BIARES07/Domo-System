@@ -3,6 +3,7 @@ from typing import Dict, Any, List
 
 from app.services.nasa_client import nasa_client
 from app.services.celestrak_client import celestrak_client
+from app.services.orbital_ops_service import orbital_ops_service
 from app.core.state import state
 from app.db.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,12 +21,16 @@ async def get_dashboard_data():
         neos = await nasa_client.get_neows()
         satellites = await celestrak_client.get_active_satellites()
         apod = await nasa_client.get_apod()
+        launches = await orbital_ops_service.get_launch_windows()
+        conjunctions = orbital_ops_service.build_conjunction_feed(satellites)
         
         return {
             "weather": weather,
             "neos": neos,
             "satellites": satellites[:50], # Send more data to admin
-            "apod": apod
+            "apod": apod,
+            "launches": launches,
+            "conjunctions": conjunctions
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
