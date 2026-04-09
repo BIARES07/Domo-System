@@ -51,6 +51,15 @@ app.add_middleware(ChaosMiddleware)
 app.add_middleware(DomoAuthMiddleware)
 app.add_middleware(MetricsMiddleware)
 
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(init_router.router, prefix="/api/v1")
 app.include_router(intern_router.router, prefix="/api/v1")
 app.include_router(admin_router.router, prefix="/api/v1")
